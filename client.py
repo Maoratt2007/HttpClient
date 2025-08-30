@@ -7,7 +7,7 @@ FORMAT = "!I"
 
 ACTION = "wb"
 
-PORT = 8200
+PORT = 9999
 
 IP = "127.0.0.1"
 
@@ -41,9 +41,14 @@ def ask_server(client_socket, user_choice):
 
 def handle_cases(client_socket):
     """handle with the 3 cases 1-exit 2-download file 3-how is the server"""
-    user_choice = input("What the action do you ask from the server 1.break 2.download file 3.how is the server: ")
+    user_choice = int(input("What the action do you ask from the server 1.break 2.download file 3.how is the server: "))
     while user_choice != 1:
         if user_choice == 2:
+            client_socket.send(pack(FORMAT, user_choice))
+            ack=client_socket.recv(BUFSIZE).decode()
+            if ack!= "ACK":
+                print("The server didn't get your choice!")
+                break
             handle_file(client_socket)
 
         elif user_choice == 3:
