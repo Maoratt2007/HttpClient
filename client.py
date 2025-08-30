@@ -1,13 +1,15 @@
 from socket import socket
 from struct import pack
 
+NEW_FILE = "/tmp/test.txt"
+
 BUFSIZE = 1024
 
 FORMAT = "!I"
 
 ACTION = "wb"
 
-PORT = 9999
+PORT = 8888
 
 IP = "127.0.0.1"
 
@@ -29,8 +31,8 @@ def handle_file(client_socket):
     file_name = input("Which file would you like to download? ")
     client_socket.send(file_name.encode())
     content_file = client_socket.recv(BUFSIZE)
-    download_file(content_file, file_name)
-    print(f"Download file from the server to {file_name} succeed!")
+    download_file(content_file, NEW_FILE)
+    print(f"Download file from the server to {NEW_FILE} succeed!")
 
 def ask_server(client_socket, user_choice):
     """ask for server how is he-> state 2"""
@@ -43,18 +45,20 @@ def handle_cases(client_socket):
     """handle with the 3 cases 1-exit 2-download file 3-how is the server"""
     user_choice = int(input("What the action do you ask from the server 1.break 2.download file 3.how is the server: "))
     while user_choice != 1:
+        client_socket.send(pack(FORMAT, user_choice))
+        ack = client_socket.recv(BUFSIZE).decode()
+
+        if ack != "ACK!":
+            print("The server didn't get your choice!")
+            break
+
         if user_choice == 2:
-            client_socket.send(pack(FORMAT, user_choice))
-            ack=client_socket.recv(BUFSIZE).decode()
-            if ack!= "ACK":
-                print("The server didn't get your choice!")
-                break
             handle_file(client_socket)
 
         elif user_choice == 3:
             ask_server(client_socket, user_choice)
 
-        user_choice = input("What the action do you ask from the server 1.break 2.download file 3.how is the server: ")
+        user_choice = int(input("What the action do you ask from the server 1.break 2.download file 3.how is the server: "))
 
     client_socket.send(pack(FORMAT, int(user_choice)))
     print("Ended communication!")
